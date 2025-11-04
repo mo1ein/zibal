@@ -1,7 +1,10 @@
-from pymongo import UpdateOne
 from datetime import datetime
+
+from pymongo import UpdateOne
+
 from .mongo_client import get_db
 from .utils import to_jalali_str
+
 
 def build_and_store_summary(batch_size=1000):
     """
@@ -16,48 +19,60 @@ def build_and_store_summary(batch_size=1000):
     # 1) Daily aggregation (group by year-month-day)
     pipeline_daily = [
         {"$match": {"status": {"$ne": "failed"}}},  # example filter - adjust as needed
-        {"$project": {
-            "amount": 1,
-            "merchant_id": 1,
-            "created_at": 1,
-            "date": {"$dateToString": {"format": "%Y-%m-%d", "date": "$created_at"}}
-        }},
-        {"$group": {
-            "_id": {"date": "$date", "merchant_id": "$merchant_id"},
-            "count": {"$sum": 1},
-            "amount": {"$sum": "$amount"}
-        }},
+        {
+            "$project": {
+                "amount": 1,
+                "merchant_id": 1,
+                "created_at": 1,
+                "date": {"$dateToString": {"format": "%Y-%m-%d", "date": "$created_at"}},
+            }
+        },
+        {
+            "$group": {
+                "_id": {"date": "$date", "merchant_id": "$merchant_id"},
+                "count": {"$sum": 1},
+                "amount": {"$sum": "$amount"},
+            }
+        },
     ]
 
     # 2) Weekly aggregation: use $isoWeekYear + $isoWeek with created_at
     pipeline_weekly = [
         {"$match": {"status": {"$ne": "failed"}}},
-        {"$project": {
-            "amount": 1,
-            "merchant_id": 1,
-            "isoWeekYear": {"$isoWeekYear": "$created_at"},
-            "isoWeek": {"$isoWeek": "$created_at"}
-        }},
-        {"$group": {
-            "_id": {"year": "$isoWeekYear", "week": "$isoWeek", "merchant_id": "$merchant_id"},
-            "count": {"$sum": 1},
-            "amount": {"$sum": "$amount"}
-        }},
+        {
+            "$project": {
+                "amount": 1,
+                "merchant_id": 1,
+                "isoWeekYear": {"$isoWeekYear": "$created_at"},
+                "isoWeek": {"$isoWeek": "$created_at"},
+            }
+        },
+        {
+            "$group": {
+                "_id": {"year": "$isoWeekYear", "week": "$isoWeek", "merchant_id": "$merchant_id"},
+                "count": {"$sum": 1},
+                "amount": {"$sum": "$amount"},
+            }
+        },
     ]
 
     # 3) Monthly aggregation (year-month)
     pipeline_monthly = [
         {"$match": {"status": {"$ne": "failed"}}},
-        {"$project": {
-            "amount": 1,
-            "merchant_id": 1,
-            "month": {"$dateToString": {"format": "%Y-%m", "date": "$created_at"}}
-        }},
-        {"$group": {
-            "_id": {"month": "$month", "merchant_id": "$merchant_id"},
-            "count": {"$sum": 1},
-            "amount": {"$sum": "$amount"}
-        }},
+        {
+            "$project": {
+                "amount": 1,
+                "merchant_id": 1,
+                "month": {"$dateToString": {"format": "%Y-%m", "date": "$created_at"}},
+            }
+        },
+        {
+            "$group": {
+                "_id": {"month": "$month", "merchant_id": "$merchant_id"},
+                "count": {"$sum": 1},
+                "amount": {"$sum": "$amount"},
+            }
+        },
     ]
 
     # Compute and upsert
@@ -81,6 +96,7 @@ def build_and_store_summary(batch_size=1000):
                 # For ISO week -> get Monday of that ISO week in Gregorian:
                 # python's fromisocalendar(year, week, 1)
                 from datetime import date
+
                 try:
                     d = date.fromisocalendar(year, week, 1)
                 except Exception:
@@ -101,7 +117,7 @@ def build_and_store_summary(batch_size=1000):
                 "merchant_id": merchant_id,
                 "count": count,
                 "amount": amount,
-                "updated_at": datetime.utcnow()
+                "updated_at": datetime.utcnow(),
             }
 
             # upsert by (period_type, period_key_iso, merchant_id)
@@ -118,4 +134,3 @@ def build_and_store_summary(batch_size=1000):
     # Optionally rebuild aggregate for global (merchant_id null) by re-aggregating ignoring merchant grouping
     # That can be done similarly, or the pipelines above will produce entries where merchant_id is null.
     return True
-

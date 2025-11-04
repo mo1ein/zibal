@@ -1,6 +1,7 @@
-
 from django.core.management.base import BaseCommand
+
 from reports.services.aggregations import build_and_store_summary
+
 
 class Command(BaseCommand):
     help = "Compute transaction_summary from transactions collection and upsert into transaction_summary."

@@ -1,5 +1,7 @@
-import jdatetime
 from datetime import datetime
+
+import jdatetime
+
 
 def to_jalali_str(dt: datetime, mode: str) -> str:
     """
@@ -21,10 +23,19 @@ def to_jalali_str(dt: datetime, mode: str) -> str:
     if mode == "monthly":
         # Persian month names
         month_names = [
-            "فروردین","اردیبهشت","خرداد","تیر","مرداد","شھریور",
-            "مھر","آبان","آذر","دی","بهمن","اسفند"
+            "فروردین",
+            "اردیبهشت",
+            "خرداد",
+            "تیر",
+            "مرداد",
+            "شھریور",
+            "مھر",
+            "آبان",
+            "آذر",
+            "دی",
+            "بهمن",
+            "اسفند",
         ]
-        return f"{j.year} {month_names[j.month-1]}"
+        return f"{j.year} {month_names[j.month - 1]}"
     # fallback to daily
     return f"{j.year:04d}/{j.month:02d}/{j.day:02d}"
-
