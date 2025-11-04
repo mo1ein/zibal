@@ -1,0 +1,5 @@
+python-dotenv>=1.2.1
+Django>=4.2
+djangorestframework
+pymongo 
+jdatetime
