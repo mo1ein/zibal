@@ -40,3 +40,35 @@ curl http://localhost:8000/api/reports/transactions/?type=amount&mode=daily
 ```bash
 curl http://localhost:8000/api/reports/transactions/?type=amount&mode=weekly
 ```
+
+
+### Successful Response
+```json
+[
+  {
+    "key": "هفته ۶ سال ۱۴۰۳",
+    "value": 98
+  },
+  {
+    "key": "هفته ۷ سال ۱۴۰۳", 
+    "value": 145
+  }
+]
+```
+
+```json
+[
+  {
+    "key": "1402 خرداد",
+    "value": 1029
+  },
+  {
+    "key": "1402 تیر",
+    "value": 1519
+  },
+  {
+    "key": "1402 مرداد",
+    "value": 1519
+  }
+]
+```
